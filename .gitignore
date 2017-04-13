@@ -1,0 +1,16 @@
+.checkstyle
+.gradle
+.classpath
+.project
+.settings
+
+bin/
+build/
+target/
+test-output/
+
+.DS_Store
+.idea
+*.swp
+*.iml
+

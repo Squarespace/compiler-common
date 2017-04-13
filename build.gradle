@@ -1,0 +1,190 @@
+
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.plugins.signing.Sign
+
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+}
+
+plugins {
+  id 'net.researchgate.release' version '2.0.2'
+  id 'com.github.hierynomus.license' version '0.11.0'
+  id 'com.glonk.eclipse-checkstyle' version '0.0.5'
+  id 'com.github.kt3k.coveralls' version '2.4.0'
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.11'
+}
+
+project.ext {
+	
+  hamcrestVersion = '2.0.0.0'
+  testngVersion = '6.10'
+
+	buildDate = new java.util.Date()
+  buildCommit = ('git rev-parse HEAD').execute().text.trim()
+
+  isRelease = !version.endsWith('SNAPSHOT')
+  isUpload = false
+  isSign = false
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+  ext.isUpload = taskGraph.allTasks.any { it instanceof Upload }
+  ext.isSign = taskGraph.allTasks.any { it instanceof Sign }
+  if (isRelease && isUpload && isSign) {
+    def password = System.console().readPassword('\n\n\n===>  Signing key password: ')
+    allprojects { ext.'signing.password' = password }
+  }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+  allprojects {
+    tasks.withType(Javadoc) {
+      options.addStringOption('Xdoclint:none', '-quiet')
+    }
+  }
+}
+
+def configurePom(def pom) {
+  pom.project {
+    name = 'compiler-common'
+    description 'Squarespace Compiler Common'
+    url 'https://github.com/squarespace/compiler-common'
+
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+    }
+
+    scm {
+      connection 'scm:git:git@github.com:squarespace/compiler-common.git'
+      url 'scm:git:git@github.com:squarespace/compiler-common.git'
+      developerConnection 'scm:git:git@github.com:squarespace/compiler-common.git'
+    }
+
+    issueManagement {
+      system 'github'
+      url 'https://github.com/squarespace/compiler-common/issues'
+    }
+
+    developers {
+      developer {
+        id 'pathensley'
+        name 'Patrick Hensley'
+        email 'pathensley@gmail.com'
+      }
+    }
+
+  }
+}
+
+allprojects {
+	repositories {
+		mavenCentral()
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'license'
+  apply plugin: 'checkstyle'
+  apply plugin: 'com.glonk.eclipse-checkstyle'
+  apply plugin: 'jacoco'
+  apply plugin: 'signing'
+  apply plugin: 'maven'
+
+  group 'com.squarespace.compiler'
+
+  sourceCompatibility = 1.7
+  targetCompatibility = 1.7
+
+  license {
+    header rootProject.file('conf/apache-2.0-header.txt')
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    skipExistingHeaders true
+    include '**/*.java'
+  }
+
+	checkstyle {
+		toolVersion = '5.7'
+    ignoreFailures = false
+    configFile = rootProject.file('checkstyle.xml')
+    configProperties = [samedir: "${rootDir}"]
+  }
+
+  test {
+    useTestNG()
+    jacoco {
+      append = false
+    }
+  }
+
+  jacocoTestReport {
+    group = 'Reporting'
+    additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
+    reports {
+      xml.enabled = true
+      html.enabled = true
+      html.destination = "${buildDir}/jacoco-report"
+    }
+  }
+
+  eclipseCheckstyle {
+    syncFormatter = true
+    patterns {
+      include "src\\/.*\\.java"
+    }
+  }
+
+  signing {
+    required { isRelease && isUpload }
+    sign configurations.archives
+  }
+
+  task testJar(type: Jar, dependsOn: testClasses) {
+    classifier = 'tests'
+    from(
+      sourceSets.main.output,
+      sourceSets.test.output
+    )
+  }
+
+  task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+  }
+
+  task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+  }
+
+  processResources {
+    from (sourceSets.main.resources.srcDirs) {
+      include '**/build.properties'
+      filter(ReplaceTokens, tokens: [
+        'build.version': project.version,
+        'build.date': buildDate.toString(),
+        'build.commit': buildCommit
+      ])
+    }
+
+    from (sourceSets.main.resources.srcDirs) {
+      exclude '**/build.properties'
+    }
+  }
+
+  processResources.outputs.upToDateWhen { false }
+}
+
+
+

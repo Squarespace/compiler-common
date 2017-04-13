@@ -1,0 +1,4 @@
+rootProject.name='compiler'
+include ':compiler-core'
+project(':compiler-core').projectDir = "$rootDir/core" as File
+

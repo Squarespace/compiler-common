@@ -1,0 +1,50 @@
+
+plugins {
+  id 'me.champeau.gradle.jmh' version '0.2.0'
+  id 'be.insaneprogramming.gradle.animalsniffer' version '1.4.0'
+}
+
+apply plugin: 'be.insaneprogramming.gradle.animalsniffer'
+
+description = 'Compiler Common core'
+
+dependencies {
+/*
+  compile "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+  compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+  compile 'commons-io:commons-io:2.1'
+  compile 'joda-time:joda-time:2.3'
+  compile 'org.apache.commons:commons-lang3:3.1'
+*/
+
+  testCompile "org.testng:testng:${testngVersion}"
+  testCompile "org.hamcrest:java-hamcrest:${hamcrestVersion}"
+//  testCompile "com.googlecode.java-diff-utils:diffutils:${diffutilsVersion}"
+}
+
+configurations {
+  tests {
+    extendsFrom testRuntime
+  }
+}
+
+artifacts {
+  archives sourcesJar
+  archives testJar
+  archives javadocJar
+  tests testJar
+}
+
+jmh {
+  jmhVersion = '1.11.1'
+  forceGC = true
+}
+
+plugins.withType(EclipsePlugin) {
+  project.eclipse.classpath.plusConfigurations += [ configurations.jmh ]
+}
+
+animalsniffer {
+  signature = 'org.codehaus.mojo.signature:java17:+@signature'
+}
+
