@@ -128,6 +128,10 @@ subprojects {
     }
   }
 
+  jacoco {
+    toolVersion = '0.7.1.201405082137'
+  }
+
   jacocoTestReport {
     group = 'Reporting'
     additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
