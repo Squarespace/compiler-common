@@ -9,17 +9,8 @@ apply plugin: 'be.insaneprogramming.gradle.animalsniffer'
 description = 'Compiler Common core'
 
 dependencies {
-/*
-  compile "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
-  compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-  compile 'commons-io:commons-io:2.1'
-  compile 'joda-time:joda-time:2.3'
-  compile 'org.apache.commons:commons-lang3:3.1'
-*/
-
   testCompile "org.testng:testng:${testngVersion}"
   testCompile "org.hamcrest:java-hamcrest:${hamcrestVersion}"
-//  testCompile "com.googlecode.java-diff-utils:diffutils:${diffutilsVersion}"
 }
 
 configurations {
