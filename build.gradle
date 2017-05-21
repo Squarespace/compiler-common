@@ -21,9 +21,9 @@ task wrapper(type: Wrapper) {
 }
 
 project.ext {
-	
   hamcrestVersion = '2.0.0.0'
-  testngVersion = '6.10'
+  snifferVersion = '1.15'
+  testngVersion = '6.11'
 
 	buildDate = new java.util.Date()
   buildCommit = ('git rev-parse HEAD').execute().text.trim()
@@ -104,8 +104,8 @@ subprojects {
 
   group 'com.squarespace.compiler'
 
-  sourceCompatibility = 1.7
-  targetCompatibility = 1.7
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
 
   license {
     header rootProject.file('conf/apache-2.0-header.txt')
@@ -115,7 +115,7 @@ subprojects {
   }
 
 	checkstyle {
-		toolVersion = '5.7'
+		toolVersion = '7.7'
     ignoreFailures = false
     configFile = rootProject.file('checkstyle.xml')
     configProperties = [samedir: "${rootDir}"]

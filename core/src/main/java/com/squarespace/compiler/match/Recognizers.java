@@ -64,7 +64,7 @@ public class Recognizers {
     return new Cardinality(pattern, minimum, maximum);
   }
 
-  public static Recognizer characters(char first, char ... characters) {
+  public static Recognizer characters(char first, char... characters) {
     return new Characters(false, first, characters);
   }
 
@@ -76,7 +76,7 @@ public class Recognizers {
     return new CharacterRange(start, end);
   }
 
-  public static Recognizer choice(Recognizer ... patterns) {
+  public static Recognizer choice(Recognizer... patterns) {
     return new Recognizers.Choice(patterns);
   }
 
@@ -112,7 +112,7 @@ public class Recognizers {
     return notCharRange('\u0000', '\u009f');
   }
 
-  public static Recognizer notCharacters(char first, char ... characters) {
+  public static Recognizer notCharacters(char first, char... characters) {
     return new Characters(true, first, characters);
   }
 
@@ -128,7 +128,7 @@ public class Recognizers {
     return notCharClass(HEXDIGIT);
   }
 
-  public static Recognizer sequence(Recognizer ... patterns) {
+  public static Recognizer sequence(Recognizer... patterns) {
     return new Recognizers.Sequence(patterns);
   }
 
@@ -217,7 +217,7 @@ public class Recognizers {
 
     private final char[] chars;
 
-    Characters(boolean invert, char first, char ... chars) {
+    Characters(boolean invert, char first, char... chars) {
       this.invert = invert;
       this.first = first;
       this.chars = chars;

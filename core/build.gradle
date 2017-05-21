@@ -1,22 +1,24 @@
 
 plugins {
   id 'me.champeau.gradle.jmh' version '0.2.0'
-  id 'be.insaneprogramming.gradle.animalsniffer' version '1.4.0'
 }
-
-apply plugin: 'be.insaneprogramming.gradle.animalsniffer'
 
 description = 'Compiler Common core'
-
-dependencies {
-  testCompile "org.testng:testng:${testngVersion}"
-  testCompile "org.hamcrest:java-hamcrest:${hamcrestVersion}"
-}
 
 configurations {
   tests {
     extendsFrom testRuntime
   }
+  animalSniffer
+  javaApiSignature
+}
+
+dependencies {
+  testCompile "org.testng:testng:${testngVersion}"
+  testCompile "org.hamcrest:java-hamcrest:${hamcrestVersion}"
+
+  animalSniffer("org.codehaus.mojo:animal-sniffer-ant-tasks:${snifferVersion}")
+  javaApiSignature("org.codehaus.mojo.signature:java18:1.0@signature")
 }
 
 artifacts {
@@ -35,7 +37,25 @@ plugins.withType(EclipsePlugin) {
   project.eclipse.classpath.plusConfigurations += [ configurations.jmh ]
 }
 
-animalsniffer {
-  signature = 'org.codehaus.mojo.signature:java17:+@signature'
+task copyJavaApiSignature(type: Copy) {
+    from configurations.javaApiSignature
+    into "$buildDir/javaApiSignature/"
+    rename '.*signature', 'javaApi.signature'
 }
+
+task checkJavaApiSignature << {
+    ant.taskdef(
+      name: 'animalSniffer',
+      classname: 'org.codehaus.mojo.animal_sniffer.ant.CheckSignatureTask',
+      classpath: configurations.animalSniffer.asPath
+    )
+    ant.animalSniffer(
+      signature: "$buildDir/javaApiSignature/javaApi.signature",
+      classpath: configurations.compile.asPath
+    ) { path(path: "$buildDir/classes/main") }
+}
+
+checkJavaApiSignature.dependsOn compileJava
+checkJavaApiSignature.dependsOn copyJavaApiSignature
+check.dependsOn checkJavaApiSignature
 
