@@ -49,7 +49,7 @@ public class ParserTest {
 
   @Test
   public void testMany() {
-    Maybe<Pair<List<String>, String>> r = matcher(digit()).zeroOrMore().parse("123");
+    Maybe<Pair<List<CharSequence>, CharSequence>> r = matcher(digit()).zeroOrMore().parse("123");
     assertEquals(r.get()._1, Arrays.asList("1", "2", "3"));
 
     r = matcher(digit()).oneOrMore().parse("123");
@@ -61,7 +61,7 @@ public class ParserTest {
     r = matcher(digit()).zeroOrMore().parse("");
     assertTrue(r.isJust());
 
-    Maybe<Pair<String, String>> r2 = matcher(digits()).parse("123");
+    Maybe<Pair<CharSequence, CharSequence>> r2 = matcher(digits()).parse("123");
     assertEquals(r2.get()._1, "123");
   }
 
@@ -72,7 +72,7 @@ public class ParserTest {
 
   @Test
   public void testTypedParser() {
-    Maybe<Pair<Node<TestType>, String>> r = P_VAR.parse(" num");
+    Maybe<Pair<Node<TestType>, CharSequence>> r = P_VAR.parse(" num");
     assertTrue(r.isJust());
     assertEquals(r.get()._1, atom(VAR, "num"));
 
@@ -85,7 +85,7 @@ public class ParserTest {
             atom(INTEGER, 123)));
   }
 
-  private final Parser<String> P_SPACE = matcher(zeroOrMore(whitespace()));
+  private final Parser<CharSequence> P_SPACE = matcher(zeroOrMore(whitespace()));
 
   private final Parser<Node<TestType>> P_VAR = matcher(oneOrMore(charClass(LOWERCASE))).prefix(P_SPACE)
       .map(v -> atom(VAR, v));
@@ -94,7 +94,7 @@ public class ParserTest {
       .map(v -> atom(OP, v));
 
   private final Parser<Node<TestType>> P_INTEGER = matcher(digits()).prefix(P_SPACE)
-      .map(v -> atom(INTEGER, Integer.valueOf(v)));
+      .map(v -> atom(INTEGER, Integer.valueOf(v.toString())));
 
   private final Parser<Node<TestType>> P_EXPR = P_VAR.flatMap(v -> P_OP.flatMap(o -> P_INTEGER
       .map(i -> struct(TestType.EXPR, v, o, i))));

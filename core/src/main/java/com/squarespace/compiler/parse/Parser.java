@@ -34,12 +34,13 @@ import com.squarespace.compiler.match.Recognizers.Recognizer;
  */
 public interface Parser<T> {
 
-  Maybe<Pair<T, String>> parse(String s);
+  Maybe<Pair<T, CharSequence>> parse(CharSequence s);
 
-  static Parser<String> matcher(Recognizer pattern) {
+  static Parser<CharSequence> matcher(Recognizer pattern) {
     return s -> {
-      int end = pattern.match(s, 0, s.length());
-      return end == -1 ? nothing() : just(pair(s.substring(0, end), s.substring(end)));
+      int length = s.length();
+      int end = pattern.match(s, 0, length);
+      return end == -1 ? nothing() : just(pair(s.subSequence(0, end), s.subSequence(end, length)));
     };
   }
 
