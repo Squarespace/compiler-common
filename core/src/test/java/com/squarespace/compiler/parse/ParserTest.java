@@ -17,6 +17,7 @@
 package com.squarespace.compiler.parse;
 
 import static com.squarespace.compiler.match.Recognizers.charClass;
+import static com.squarespace.compiler.match.Recognizers.characters;
 import static com.squarespace.compiler.match.Recognizers.choice;
 import static com.squarespace.compiler.match.Recognizers.digit;
 import static com.squarespace.compiler.match.Recognizers.digits;
@@ -27,8 +28,11 @@ import static com.squarespace.compiler.match.Recognizers.zeroOrMore;
 import static com.squarespace.compiler.parse.Atom.atom;
 import static com.squarespace.compiler.parse.Parser.cons;
 import static com.squarespace.compiler.parse.Parser.matcher;
+import static com.squarespace.compiler.parse.ParserTest.TestType.CHOICES;
 import static com.squarespace.compiler.parse.ParserTest.TestType.EXPR;
 import static com.squarespace.compiler.parse.ParserTest.TestType.INTEGER;
+import static com.squarespace.compiler.parse.ParserTest.TestType.INTLIST;
+import static com.squarespace.compiler.parse.ParserTest.TestType.LITERAL;
 import static com.squarespace.compiler.parse.ParserTest.TestType.OP;
 import static com.squarespace.compiler.parse.ParserTest.TestType.VAR;
 import static com.squarespace.compiler.parse.Struct.struct;
@@ -82,26 +86,89 @@ public class ParserTest {
         struct(EXPR,
             atom(VAR, "number"),
             atom(OP, "="),
-            atom(INTEGER, 123)));
+            struct(INTLIST,
+                atom(INTEGER, 123))));
+
+    r = P_BLOCK.parse(" { number != 123, 456, 789 } ");
+    assertTrue(r.isJust());
+    assertEquals(r.get()._1,
+        struct(EXPR,
+            atom(VAR, "number"),
+            atom(OP, "!="),
+            struct(INTLIST,
+                atom(INTEGER, 123),
+                atom(INTEGER, 456),
+                atom(INTEGER, 789))));
+
+    r = P_INTLIST.parse(" 1, 2 , 3,\n4, 5");
+    assertTrue(r.isJust());
+    assertEquals(r.get()._1,
+        struct(INTLIST,
+            atom(INTEGER, 1),
+            atom(INTEGER, 2),
+            atom(INTEGER, 3),
+            atom(INTEGER, 4),
+            atom(INTEGER, 5)));
+
+    r = P_CHOICES.parse("  def   abc  def   ghi");
+    assertTrue(r.isJust());
+    assertEquals(r.get()._1,
+        struct(CHOICES,
+            atom(LITERAL, "def"),
+            atom(LITERAL, "abc"),
+            atom(LITERAL, "def"),
+            atom(LITERAL, "ghi")));
   }
 
-  private final Parser<CharSequence> P_SPACE = matcher(zeroOrMore(whitespace()));
+  private final Parser<CharSequence> P_SPACE =
+      matcher(zeroOrMore(whitespace()));
 
-  private final Parser<Node<TestType>> P_VAR = matcher(oneOrMore(charClass(LOWERCASE))).prefix(P_SPACE)
-      .map(v -> atom(VAR, v));
+  private final Parser<Node<TestType>> P_VAR =
+      matcher(oneOrMore(charClass(LOWERCASE))).prefix(P_SPACE)
+          .map(v -> atom(VAR, v));
 
-  private final Parser<Node<TestType>> P_OP = matcher(choice(literal("="), literal("!="))).prefix(P_SPACE)
-      .map(v -> atom(OP, v));
+  private final Parser<Node<TestType>> P_OP =
+      matcher(choice(literal("="), literal("!="))).prefix(P_SPACE)
+          .map(v -> atom(OP, v));
 
-  private final Parser<Node<TestType>> P_INTEGER = matcher(digits()).prefix(P_SPACE)
-      .map(v -> atom(INTEGER, Integer.valueOf(v.toString())));
+  private final Parser<Node<TestType>> P_INTEGER =
+      matcher(digits()).prefix(P_SPACE)
+          .map(v -> atom(INTEGER, Integer.valueOf(v.toString())));
 
-  private final Parser<Node<TestType>> P_EXPR = P_VAR.flatMap(v -> P_OP.flatMap(o -> P_INTEGER
-      .map(i -> struct(TestType.EXPR, v, o, i))));
+  private final Parser<CharSequence> P_COMMA =
+      matcher(characters(',')).prefix(P_SPACE);
+
+  private final Parser<Node<TestType>> P_INTLIST =
+      P_INTEGER.separated(P_COMMA)
+          .map(i -> struct(TestType.INTLIST, i));
+
+  private final Parser<Node<TestType>> P_EXPR =
+      P_VAR.flatMap(v -> P_OP.flatMap(o -> P_INTLIST
+          .map(i -> struct(TestType.EXPR, v, o, i))));
+
+  private final Parser<CharSequence> P_LEFT =
+      matcher(characters('{')).prefix(P_SPACE);
+
+  private final Parser<CharSequence> P_RIGHT =
+      matcher(characters('}')).prefix(P_SPACE);
+
+  private final Parser<Node<TestType>> P_BLOCK =
+      P_EXPR.prefix(P_LEFT).suffix(P_RIGHT);
+
+  private final Parser<Node<TestType>> P_CHOICE =
+      matcher(literal("abc")).or(matcher(literal("def"))).or(matcher(literal("ghi"))).prefix(P_SPACE)
+          .map(c -> atom(LITERAL, c));
+
+  private final Parser<Node<TestType>> P_CHOICES =
+      P_CHOICE.separated(P_SPACE)
+          .map(c -> struct(CHOICES, c));
 
   enum TestType {
+    CHOICES,
     EXPR,
     INTEGER,
+    INTLIST,
+    LITERAL,
     OP,
     VAR
   }
