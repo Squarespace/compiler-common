@@ -17,14 +17,13 @@
 package com.squarespace.compiler.text;
 
 
-import static com.squarespace.compiler.text.CharClass.DIGIT;
-import static com.squarespace.compiler.text.CharClass.ESCAPE_SYMS;
-import static com.squarespace.compiler.text.CharClass.LOWERCASE;
-import static com.squarespace.compiler.text.CharClass.NUMBER_SIGN;
-import static com.squarespace.compiler.text.CharClass.UPPERCASE;
-import static com.squarespace.compiler.text.CharClass.URI_MARK;
-import static com.squarespace.compiler.text.CharClass.URI_RESERVED;
-import static com.squarespace.compiler.text.CharClass.isMember;
+import static com.squarespace.compiler.text.DefaultCharClassifier.DIGIT;
+import static com.squarespace.compiler.text.DefaultCharClassifier.ESCAPE_SYMS;
+import static com.squarespace.compiler.text.DefaultCharClassifier.LOWERCASE;
+import static com.squarespace.compiler.text.DefaultCharClassifier.NUMBER_SIGN;
+import static com.squarespace.compiler.text.DefaultCharClassifier.UPPERCASE;
+import static com.squarespace.compiler.text.DefaultCharClassifier.URI_MARK;
+import static com.squarespace.compiler.text.DefaultCharClassifier.URI_RESERVED;
 import static com.squarespace.compiler.text.Chars.hexchar;
 
 
@@ -55,6 +54,8 @@ import static com.squarespace.compiler.text.Chars.hexchar;
  */
 public class EncodeUtils {
 
+  private static final CharClassifier CLASSIFIER = new DefaultCharClassifier();
+
   /**
    * Tests character membership for {@link #encodeURI(String)} per ECMA-262:
    * https://www.ecma-international.org/ecma-262/7.0/index.html#sec-encodeuri-uri
@@ -62,7 +63,7 @@ public class EncodeUtils {
   private static final CharPredicate ENCODE_URI = new CharPredicate() {
     @Override
     public boolean member(char ch) {
-      return isMember(ch, LOWERCASE | UPPERCASE | DIGIT | NUMBER_SIGN | URI_RESERVED | URI_MARK);
+      return CLASSIFIER.isMember(ch, LOWERCASE | UPPERCASE | DIGIT | NUMBER_SIGN | URI_RESERVED | URI_MARK);
     }
   };
 
@@ -73,7 +74,7 @@ public class EncodeUtils {
   private static final CharPredicate ENCODE_URI_COMPONENT = new CharPredicate() {
     @Override
     public boolean member(char ch) {
-      return isMember(ch, LOWERCASE | UPPERCASE | DIGIT | URI_MARK);
+      return CLASSIFIER.isMember(ch, LOWERCASE | UPPERCASE | DIGIT | URI_MARK);
     }
   };
 
@@ -83,7 +84,7 @@ public class EncodeUtils {
   private static final CharPredicate ESCAPE = new CharPredicate() {
     @Override
     public boolean member(char ch) {
-      return isMember(ch, LOWERCASE | UPPERCASE | DIGIT | ESCAPE_SYMS);
+      return CLASSIFIER.isMember(ch, LOWERCASE | UPPERCASE | DIGIT | ESCAPE_SYMS);
     }
   };
 

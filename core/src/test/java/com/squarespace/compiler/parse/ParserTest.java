@@ -36,7 +36,7 @@ import static com.squarespace.compiler.parse.ParserTest.TestType.LITERAL;
 import static com.squarespace.compiler.parse.ParserTest.TestType.OP;
 import static com.squarespace.compiler.parse.ParserTest.TestType.VAR;
 import static com.squarespace.compiler.parse.Struct.struct;
-import static com.squarespace.compiler.text.CharClass.LOWERCASE;
+import static com.squarespace.compiler.text.DefaultCharClassifier.LOWERCASE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -47,6 +47,8 @@ import java.util.List;
 import org.testng.annotations.Test;
 
 import com.squarespace.compiler.common.Maybe;
+import com.squarespace.compiler.text.DefaultCharClassifier;
+import com.squarespace.compiler.text.CharClassifier;
 
 
 public class ParserTest {
@@ -120,11 +122,13 @@ public class ParserTest {
             atom(LITERAL, "ghi")));
   }
 
+  private static final CharClassifier CLASSIFIER = new DefaultCharClassifier();
+
   private final Parser<CharSequence> P_SPACE =
       matcher(zeroOrMore(whitespace()));
 
   private final Parser<Node<TestType>> P_VAR =
-      matcher(oneOrMore(charClass(LOWERCASE))).prefix(P_SPACE)
+      matcher(oneOrMore(charClass(LOWERCASE, CLASSIFIER))).prefix(P_SPACE)
           .map(v -> atom(VAR, v));
 
   private final Parser<Node<TestType>> P_OP =

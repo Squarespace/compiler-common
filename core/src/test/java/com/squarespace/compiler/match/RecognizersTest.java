@@ -40,15 +40,19 @@ import static com.squarespace.compiler.match.Recognizers.word;
 import static com.squarespace.compiler.match.Recognizers.worddash;
 import static com.squarespace.compiler.match.Recognizers.zeroOrMore;
 import static com.squarespace.compiler.match.Recognizers.zeroOrOne;
-import static com.squarespace.compiler.text.CharClass.DIGIT;
+import static com.squarespace.compiler.text.DefaultCharClassifier.DIGIT;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
 import com.squarespace.compiler.match.Recognizers.Recognizer;
+import com.squarespace.compiler.text.DefaultCharClassifier;
+import com.squarespace.compiler.text.CharClassifier;
 
 
 public class RecognizersTest {
+
+  private static final CharClassifier CLASSIFIER = new DefaultCharClassifier();
 
   @Test
   public void testAny() {
@@ -148,7 +152,7 @@ public class RecognizersTest {
     assertEquals(9, match(pattern, 3, "___123.45"));
 
     // REGEX  [^\d]+
-    pattern = oneOrMore(notCharClass(DIGIT));
+    pattern = oneOrMore(notCharClass(DIGIT, CLASSIFIER));
 
     assertEquals(3, match(pattern, "abc"));
     assertEquals(3, match(pattern, "abc123"));

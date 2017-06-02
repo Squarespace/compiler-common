@@ -16,8 +16,6 @@
 
 package com.squarespace.compiler.text;
 
-import static com.squarespace.compiler.text.CharClass.whitespace;
-
 import com.squarespace.compiler.match.Recognizers.Recognizer;
 
 
@@ -121,7 +119,7 @@ public class Scanner {
      */
     public void skipWs() {
       while (pos < end) {
-        if (!whitespace(raw.charAt(pos))) {
+        if (!DefaultCharClassifier.whitespace(raw.charAt(pos))) {
           break;
         }
         pos++;

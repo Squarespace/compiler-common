@@ -17,7 +17,7 @@
 package com.squarespace.compiler.text;
 
 
-public class CharClass {
+public class DefaultCharClassifier implements CharClassifier {
 
   public static final int NONE = 0;
 
@@ -59,7 +59,7 @@ public class CharClass {
   /**
    * Tests whether a character is a member of the given classes.
    */
-  public static boolean isMember(char ch, int cls) {
+  public boolean isMember(char ch, int cls) {
     return ch < LIMIT ? (CHARACTER_CLASSES[ch] & cls) > 0 : false;
   }
 
@@ -67,7 +67,7 @@ public class CharClass {
    * Builds a string containing all characters that are members of the
    * given classes, in ascending order.
    */
-  public static String membersOf(int cls) {
+  public String membersOf(int cls) {
     StringBuilder buf = new StringBuilder();
     for (char ch = '\u0000'; ch < LIMIT; ch++) {
       if ((CHARACTER_CLASSES[ch] & cls) > 0) {

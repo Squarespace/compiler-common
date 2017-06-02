@@ -17,15 +17,15 @@
 package com.squarespace.compiler.match;
 
 
-import static com.squarespace.compiler.text.CharClass.DASH;
-import static com.squarespace.compiler.text.CharClass.DIGIT;
-import static com.squarespace.compiler.text.CharClass.HEXDIGIT;
-import static com.squarespace.compiler.text.CharClass.LOWERCASE;
-import static com.squarespace.compiler.text.CharClass.UNDERSCORE;
-import static com.squarespace.compiler.text.CharClass.UPPERCASE;
-import static com.squarespace.compiler.text.CharClass.isMember;
+import static com.squarespace.compiler.text.DefaultCharClassifier.DASH;
+import static com.squarespace.compiler.text.DefaultCharClassifier.DIGIT;
+import static com.squarespace.compiler.text.DefaultCharClassifier.HEXDIGIT;
+import static com.squarespace.compiler.text.DefaultCharClassifier.LOWERCASE;
+import static com.squarespace.compiler.text.DefaultCharClassifier.UNDERSCORE;
+import static com.squarespace.compiler.text.DefaultCharClassifier.UPPERCASE;
 
-import com.squarespace.compiler.text.CharClass;
+import com.squarespace.compiler.text.DefaultCharClassifier;
+import com.squarespace.compiler.text.CharClassifier;
 
 
 /**
@@ -53,6 +53,8 @@ public class Recognizers {
 
   private static final Recognizer WHITESPACE = new Whitespace();
 
+  private static final CharClassifier CLASSIFIER = new DefaultCharClassifier();
+
   private Recognizers() {
   }
 
@@ -68,8 +70,8 @@ public class Recognizers {
     return new Characters(false, first, characters);
   }
 
-  public static Recognizer charClass(int bitmask) {
-    return new CharacterClass(bitmask);
+  public static Recognizer charClass(int bitmask, CharClassifier classifier) {
+    return new CharacterClass(bitmask, classifier);
   }
 
   public static Recognizer charRange(char start, char end) {
@@ -85,7 +87,7 @@ public class Recognizers {
   }
 
   public static Recognizer digit() {
-    return charClass(DIGIT);
+    return charClass(DIGIT, CLASSIFIER);
   }
 
   public static Recognizer digits() {
@@ -93,7 +95,7 @@ public class Recognizers {
   }
 
   public static Recognizer hexdigit() {
-    return charClass(HEXDIGIT);
+    return charClass(HEXDIGIT, CLASSIFIER);
   }
 
   public static Recognizer literal(String str) {
@@ -116,8 +118,8 @@ public class Recognizers {
     return new Characters(true, first, characters);
   }
 
-  public static Recognizer notCharClass(int bitmask) {
-    return new CharacterClass(bitmask, true);
+  public static Recognizer notCharClass(int bitmask, CharClassifier classifier) {
+    return new CharacterClass(bitmask, true, classifier);
   }
 
   public static Recognizer notCharRange(char start, char end) {
@@ -125,7 +127,7 @@ public class Recognizers {
   }
 
   public static Recognizer notHexdigit() {
-    return notCharClass(HEXDIGIT);
+    return notCharClass(HEXDIGIT, CLASSIFIER);
   }
 
   public static Recognizer sequence(Recognizer... patterns) {
@@ -137,11 +139,11 @@ public class Recognizers {
   }
 
   public static Recognizer word() {
-    return charClass(LOWERCASE | UPPERCASE | DIGIT | UNDERSCORE);
+    return charClass(LOWERCASE | UPPERCASE | DIGIT | UNDERSCORE, CLASSIFIER);
   }
 
   public static Recognizer worddash() {
-    return charClass(LOWERCASE | UPPERCASE | DIGIT | UNDERSCORE | DASH);
+    return charClass(LOWERCASE | UPPERCASE | DIGIT | UNDERSCORE | DASH, CLASSIFIER);
   }
 
   public static Recognizer zeroOrOne(Recognizer pattern) {
@@ -251,19 +253,22 @@ public class Recognizers {
 
     private final boolean invert;
 
-    CharacterClass(int charClass) {
-      this(charClass, false);
+    private final CharClassifier classifier;
+
+    CharacterClass(int charClass, CharClassifier classifier) {
+      this(charClass, false, classifier);
     }
 
-    CharacterClass(int charClass, boolean invert) {
+    CharacterClass(int charClass, boolean invert, CharClassifier classifier) {
       this.bitmask = charClass;
       this.invert = invert;
+      this.classifier = classifier;
     }
 
     @Override
     public int match(CharSequence seq, int pos, int length) {
       if (pos < length) {
-        boolean result = isMember(seq.charAt(pos), bitmask);
+        boolean result = this.classifier.isMember(seq.charAt(pos), bitmask);
         return invert ? (result ? FAIL : pos + 1) : (result ? pos + 1 : FAIL);
       }
       return FAIL;
@@ -351,7 +356,7 @@ public class Recognizers {
           }
           dot = true;
 
-        } else if (!isMember(ch, DIGIT)) {
+        } else if (!CLASSIFIER.isMember(ch, DIGIT)) {
           break;
         }
         pos++;
@@ -470,7 +475,7 @@ public class Recognizers {
 
     @Override
     public int match(CharSequence seq, int pos, int length) {
-      if (pos < length && CharClass.whitespace(seq.charAt(pos))) {
+      if (pos < length && DefaultCharClassifier.whitespace(seq.charAt(pos))) {
         return pos + 1;
       }
       return FAIL;
