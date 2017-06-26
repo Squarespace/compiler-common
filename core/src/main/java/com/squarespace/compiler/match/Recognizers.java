@@ -24,8 +24,8 @@ import static com.squarespace.compiler.text.DefaultCharClassifier.LOWERCASE;
 import static com.squarespace.compiler.text.DefaultCharClassifier.UNDERSCORE;
 import static com.squarespace.compiler.text.DefaultCharClassifier.UPPERCASE;
 
-import com.squarespace.compiler.text.DefaultCharClassifier;
 import com.squarespace.compiler.text.CharClassifier;
+import com.squarespace.compiler.text.DefaultCharClassifier;
 
 
 /**
@@ -51,7 +51,9 @@ public class Recognizers {
 
   private static final Recognizer ANY = new Any();
 
-  private static final Recognizer WHITESPACE = new Whitespace();
+  private static final Recognizer WHITESPACE = new Whitespace(false);
+
+  private static final Recognizer NOT_WHITESPACE = new Whitespace(true);
 
   private static final CharClassifier CLASSIFIER = new DefaultCharClassifier();
 
@@ -136,6 +138,10 @@ public class Recognizers {
 
   public static Recognizer whitespace() {
     return WHITESPACE;
+  }
+
+  public static Recognizer notWhitespace() {
+    return NOT_WHITESPACE;
   }
 
   public static Recognizer word() {
@@ -473,10 +479,20 @@ public class Recognizers {
    */
   static class Whitespace implements Recognizer {
 
+    private final boolean invert;
+
+    Whitespace(boolean invert) {
+      this.invert = invert;
+    }
+
     @Override
     public int match(CharSequence seq, int pos, int length) {
-      if (pos < length && DefaultCharClassifier.whitespace(seq.charAt(pos))) {
-        return pos + 1;
+      if (pos < length) {
+        if (DefaultCharClassifier.whitespace(seq.charAt(pos))) {
+          return invert ? FAIL : pos + 1;
+        } else {
+          return invert ? pos + 1 : FAIL;
+        }
       }
       return FAIL;
     }

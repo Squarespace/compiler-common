@@ -34,8 +34,10 @@ import static com.squarespace.compiler.match.Recognizers.notCharClass;
 import static com.squarespace.compiler.match.Recognizers.notCharRange;
 import static com.squarespace.compiler.match.Recognizers.notCharacters;
 import static com.squarespace.compiler.match.Recognizers.notHexdigit;
+import static com.squarespace.compiler.match.Recognizers.notWhitespace;
 import static com.squarespace.compiler.match.Recognizers.oneOrMore;
 import static com.squarespace.compiler.match.Recognizers.sequence;
+import static com.squarespace.compiler.match.Recognizers.whitespace;
 import static com.squarespace.compiler.match.Recognizers.word;
 import static com.squarespace.compiler.match.Recognizers.worddash;
 import static com.squarespace.compiler.match.Recognizers.zeroOrMore;
@@ -60,14 +62,14 @@ public class RecognizersTest {
     // REGEX  xy.z
     Recognizer pattern = sequence(literal("xy"), any(), characters('z'));
 
-    assertEquals(4, match(pattern, "xy_z"));
-    assertEquals(4, match(pattern, "xy:z"));
+    assertEquals(match(pattern, "xy_z"), 4);
+    assertEquals(match(pattern, "xy:z"), 4);
 
-    assertEquals(7, match(pattern, 3, "___xyqz"));
-    assertEquals(7, match(pattern, 3, "___xy~z"));
+    assertEquals(match(pattern, 3, "___xyqz"), 7);
+    assertEquals(match(pattern, 3, "___xy~z"), 7);
 
-    assertEquals(FAIL, match(pattern, "xy"));
-    assertEquals(FAIL, match(pattern, "xy_"));
+    assertEquals(match(pattern, "xy"), FAIL);
+    assertEquals(match(pattern, "xy_"), FAIL);
   }
 
   @Test
@@ -76,61 +78,61 @@ public class RecognizersTest {
     // REGEX  [.:]{2,5}
     Recognizer pattern = cardinality(characters('.', ':'), 2, 5);
 
-    assertEquals(2, match(pattern, ".:"));
-    assertEquals(3, match(pattern, ".:."));
-    assertEquals(4, match(pattern, ".:.:"));
-    assertEquals(5, match(pattern, ".:.:."));
+    assertEquals(match(pattern, ".:"), 2);
+    assertEquals(match(pattern, ".:."), 3);
+    assertEquals(match(pattern, ".:.:"), 4);
+    assertEquals(match(pattern, ".:.:."), 5);
 
-    assertEquals(5, match(pattern, 3, "___.:"));
-    assertEquals(6, match(pattern, 3, "___.:."));
-    assertEquals(7, match(pattern, 3, "___.:.:"));
-    assertEquals(8, match(pattern, 3, "___.:.:."));
+    assertEquals(match(pattern, 3, "___.:"), 5);
+    assertEquals(match(pattern, 3, "___.:."), 6);
+    assertEquals(match(pattern, 3, "___.:.:"), 7);
+    assertEquals(match(pattern, 3, "___.:.:."), 8);
 
-    assertEquals(5, match(pattern, ".:.:.:::"));
-    assertEquals(8, match(pattern, 3, "___.:.:.:::"));
+    assertEquals(match(pattern, ".:.:.:::"), 5);
+    assertEquals(match(pattern, 3, "___.:.:.:::"), 8);
 
-    assertEquals(FAIL, match(pattern, "._"));
+    assertEquals(match(pattern, "._"), FAIL);
 
     // REGEX  [.:]{,3}
     pattern = cardinality(characters('.', ':'), 0, 3);
-    assertEquals(0, match(pattern, ""));
-    assertEquals(1, match(pattern, "."));
-    assertEquals(2, match(pattern, ".:"));
-    assertEquals(3, match(pattern, ".:."));
-    assertEquals(3, match(pattern, ".:.:"));
+    assertEquals(match(pattern, ""), 0);
+    assertEquals(match(pattern, "."), 1);
+    assertEquals(match(pattern, ".:"), 2);
+    assertEquals(match(pattern, ".:."), 3);
+    assertEquals(match(pattern, ".:.:"), 3);
 
-    assertEquals(3, match(pattern, 3, "___"));
-    assertEquals(4, match(pattern, 3, "___."));
-    assertEquals(5, match(pattern, 3, "___.:"));
-    assertEquals(6, match(pattern, 3, "___.:."));
-    assertEquals(6, match(pattern, 3, "___.:.:"));
+    assertEquals(match(pattern, 3, "___"), 3);
+    assertEquals(match(pattern, 3, "___."), 4);
+    assertEquals(match(pattern, 3, "___.:"), 5);
+    assertEquals(match(pattern, 3, "___.:."), 6);
+    assertEquals(match(pattern, 3, "___.:.:"), 6);
 
     // REGEX  [ab]{3,}
     pattern = cardinality(characters('a', 'b'), 3, 0);
 
-    assertEquals(3, match(pattern, "abb"));
-    assertEquals(4, match(pattern, "abbb"));
-    assertEquals(7, match(pattern, "abbbbbb"));
-    assertEquals(10, match(pattern, 3, "___abbbbbb"));
+    assertEquals(match(pattern, "abb"), 3);
+    assertEquals(match(pattern, "abbb"), 4);
+    assertEquals(match(pattern, "abbbbbb"), 7);
+    assertEquals(match(pattern, 3, "___abbbbbb"), 10);
 
-    assertEquals(FAIL, match(pattern, "a"));
-    assertEquals(FAIL, match(pattern, "ab"));
+    assertEquals(match(pattern, "a"), FAIL);
+    assertEquals(match(pattern, "ab"), FAIL);
   }
 
   @Test
   public void testCharacters() {
     Recognizer pattern = oneOrMore(characters('.', 'a', 'b', 'c'));
 
-    assertEquals(1, match(pattern, "."));
-    assertEquals(3, match(pattern, "abc"));
+    assertEquals(match(pattern, "."), 1);
+    assertEquals(match(pattern, "abc"), 3);
 
     pattern = oneOrMore(notCharacters('.', 'a', 'b', 'c'));
-    assertEquals(1, match(pattern, "x"));
-    assertEquals(1, match(pattern, "xabc"));
+    assertEquals(match(pattern, "x"), 1);
+    assertEquals(match(pattern, "xabc"), 1);
 
-    assertEquals(6, match(pattern, 3, "___xyzabc"));
-    assertEquals(FAIL, match(pattern, "."));
-    assertEquals(FAIL, match(pattern, "a"));
+    assertEquals(match(pattern, 3, "___xyzabc"), 6);
+    assertEquals(match(pattern, "."), FAIL);
+    assertEquals(match(pattern, "a"), FAIL);
   }
 
   @Test
@@ -138,27 +140,27 @@ public class RecognizersTest {
 
     // REGEX  \d*\.?\d+
     Recognizer pattern = decimal();
-    assertEquals(1, match(pattern, "1"));
-    assertEquals(2, match(pattern, ".1"));
-    assertEquals(2, match(pattern, "1."));
-    assertEquals(3, match(pattern, "123"));
-    assertEquals(6, match(pattern, "123.45"));
-    assertEquals(6, match(pattern, "123.45abc"));
-    assertEquals(6, match(pattern, "123.45."));
+    assertEquals(match(pattern, "1"), 1);
+    assertEquals(match(pattern, ".1"), 2);
+    assertEquals(match(pattern, "1."), 2);
+    assertEquals(match(pattern, "123"), 3);
+    assertEquals(match(pattern, "123.45"), 6);
+    assertEquals(match(pattern, "123.45abc"), 6);
+    assertEquals(match(pattern, "123.45."), 6);
 
-    assertEquals(FAIL, match(pattern, "."));
-    assertEquals(FAIL, match(pattern, ".x"));
+    assertEquals(match(pattern, "."), FAIL);
+    assertEquals(match(pattern, ".x"), FAIL);
 
-    assertEquals(9, match(pattern, 3, "___123.45"));
+    assertEquals(match(pattern, 3, "___123.45"), 9);
 
     // REGEX  [^\d]+
     pattern = oneOrMore(notCharClass(DIGIT, CLASSIFIER));
 
-    assertEquals(3, match(pattern, "abc"));
-    assertEquals(3, match(pattern, "abc123"));
-    assertEquals(6, match(pattern, "___abc123"));
+    assertEquals(match(pattern, "abc"), 3);
+    assertEquals(match(pattern, "abc123"), 3);
+    assertEquals(match(pattern, "___abc123"), 6);
 
-    assertEquals(FAIL, match(pattern, "123"));
+    assertEquals(match(pattern, "123"), FAIL);
   }
 
   @Test
@@ -167,24 +169,24 @@ public class RecognizersTest {
     // REGEX  [a-zA-Z]+
     Recognizer pattern = oneOrMore(choice(charRange('a', 'z'), charRange('A', 'Z')));
 
-    assertEquals(5, match(pattern, "aBcDe"));
-    assertEquals(5, match(pattern, "AbCdE"));
-    assertEquals(5, match(pattern, "vWxYz"));
-    assertEquals(5, match(pattern, "VwXyZ"));
+    assertEquals(match(pattern, "aBcDe"), 5);
+    assertEquals(match(pattern, "AbCdE"), 5);
+    assertEquals(match(pattern, "vWxYz"), 5);
+    assertEquals(match(pattern, "VwXyZ"), 5);
 
-    assertEquals(FAIL, match(pattern, "12abcDE"));
-    assertEquals(FAIL, match(pattern, "|{}"));
+    assertEquals(match(pattern, "12abcDE"), FAIL);
+    assertEquals(match(pattern, "|{}"), FAIL);
 
     // REGEX  [^a-z]+
     pattern = oneOrMore(notCharRange('a', 'z'));
 
-    assertEquals(5, match(pattern, "ABCDE"));
-    assertEquals(5, match(pattern, "VWXYZ"));
-    assertEquals(5, match(pattern, "12345"));
-    assertEquals(4, match(pattern, "\tABC"));
-    assertEquals(3, match(pattern, "|{}"));
+    assertEquals(match(pattern, "ABCDE"), 5);
+    assertEquals(match(pattern, "VWXYZ"), 5);
+    assertEquals(match(pattern, "12345"), 5);
+    assertEquals(match(pattern, "\tABC"), 4);
+    assertEquals(match(pattern, "|{}"), 3);
 
-    assertEquals(FAIL, match(pattern, "abCde"));
+    assertEquals(match(pattern, "abCde"), FAIL);
   }
 
   @Test
@@ -193,16 +195,16 @@ public class RecognizersTest {
     // REGEX  (.?|:*)
     Recognizer pattern = choice(zeroOrOne(characters('.')), zeroOrMore(characters(':')));
 
-    assertEquals(1, match(pattern, "."));
-    assertEquals(1, match(pattern, ":"));
-    assertEquals(3, match(pattern, ":::"));
-    assertEquals(6, match(pattern, 3, "___:::"));
+    assertEquals(match(pattern, "."), 1);
+    assertEquals(match(pattern, ":"), 1);
+    assertEquals(match(pattern, ":::"), 3);
+    assertEquals(match(pattern, 3, "___:::"), 6);
 
-    assertEquals(1, match(pattern, ".."));
-    assertEquals(1, match(pattern, ".:"));
+    assertEquals(match(pattern, ".."), 1);
+    assertEquals(match(pattern, ".:"), 1);
 
     // choice between 2 zero-length patterns can never fail. always matches current position.
-    assertEquals(0, match(pattern, "x"));
+    assertEquals(match(pattern, "x"), 0);
   }
 
   @Test
@@ -211,8 +213,8 @@ public class RecognizersTest {
     // REGEX  \d+\.\d+
     Recognizer pattern = decimal();
 
-    assertEquals(7, match(pattern, "3.14159"));
-    assertEquals(7, match(pattern, "3.14159___"));
+    assertEquals(match(pattern, "3.14159"), 7);
+    assertEquals(match(pattern, "3.14159___"), 7);
   }
 
   @Test
@@ -221,17 +223,17 @@ public class RecognizersTest {
     // REGEX  \d+
     Recognizer pattern = oneOrMore(digit());
 
-    assertEquals(3, match(pattern, "012"));
-    assertEquals(4, match(pattern, "1234"));
+    assertEquals(match(pattern, "012"), 3);
+    assertEquals(match(pattern, "1234"), 4);
 
-    assertEquals(FAIL, match(pattern, "a1234"));
+    assertEquals(match(pattern, "a1234"), FAIL);
 
     // REGEX  \d+
     pattern = digits();
-    assertEquals(3, match(pattern, "012"));
-    assertEquals(4, match(pattern, "1234"));
+    assertEquals(match(pattern, "012"), 3);
+    assertEquals(match(pattern, "1234"), 4);
 
-    assertEquals(FAIL, match(pattern, "a1234"));
+    assertEquals(match(pattern, "a1234"), FAIL);
   }
 
   @Test
@@ -240,17 +242,17 @@ public class RecognizersTest {
     // REGEX  [A-Fa-f0-9]+
     Recognizer pattern = oneOrMore(hexdigit());
 
-    assertEquals(5, match(pattern, "deadcode"));
-    assertEquals(8, match(pattern, "deadc0de"));
-    assertEquals(11, match(pattern, 3, "___deadc0de"));
+    assertEquals(match(pattern, "deadcode"), 5);
+    assertEquals(match(pattern, "deadc0de"), 8);
+    assertEquals(match(pattern, 3, "___deadc0de"), 11);
 
-    assertEquals(FAIL, match(pattern, "ghijk"));
+    assertEquals(match(pattern, "ghijk"), FAIL);
 
     // REGEX  [^A-Fa-f0-9]+
     pattern = oneOrMore(notHexdigit());
-    assertEquals(6, match(pattern, "nonh_x"));
+    assertEquals(match(pattern, "nonh_x"), 6);
 
-    assertEquals(FAIL, match(pattern, "deadc0de"));
+    assertEquals(match(pattern, "deadc0de"), FAIL);
   }
 
   @Test
@@ -258,8 +260,8 @@ public class RecognizersTest {
     // REGEX  foobar
     Recognizer pattern = literal("foobar");
 
-    assertEquals(6, match(pattern, "foobar"));
-    assertEquals(FAIL, match(pattern, "FOOBAR"));
+    assertEquals(match(pattern, "foobar"), 6);
+    assertEquals(match(pattern, "FOOBAR"), FAIL);
   }
 
   @Test
@@ -268,15 +270,15 @@ public class RecognizersTest {
     // REGEX  (xy)+(?=[.:])
     Recognizer pattern = sequence(oneOrMore(literal("xy")), lookAhead(characters('.', ':')));
 
-    assertEquals(2, match(pattern, "xy."));
-    assertEquals(2, match(pattern, "xy:"));
-    assertEquals(4, match(pattern, "xyxy."));
-    assertEquals(12, match(pattern, "xyxyxyxyxyxy:"));
+    assertEquals(match(pattern, "xy."), 2);
+    assertEquals(match(pattern, "xy:"), 2);
+    assertEquals(match(pattern, "xyxy."), 4);
+    assertEquals(match(pattern, "xyxyxyxyxyxy:"), 12);
 
-    assertEquals(5, match(pattern, 3, "___xy."));
+    assertEquals(match(pattern, 3, "___xy."), 5);
 
-    assertEquals(FAIL, match(pattern, "xy"));
-    assertEquals(FAIL, match(pattern, "xyxy"));
+    assertEquals(match(pattern, "xy"), FAIL);
+    assertEquals(match(pattern, "xyxy"), FAIL);
   }
 
   @Test
@@ -285,14 +287,14 @@ public class RecognizersTest {
     // REGEX  [.:]+
     Recognizer pattern = oneOrMore(characters('.', ':'));
 
-    assertEquals(1, match(pattern, "."));
-    assertEquals(2, match(pattern, ".."));
+    assertEquals(match(pattern, "."), 1);
+    assertEquals(match(pattern, ".."), 2);
 
-    assertEquals(3, match(pattern, ".:.123"));
-    assertEquals(5, match(pattern, ".....123"));
+    assertEquals(match(pattern, ".:.123"), 3);
+    assertEquals(match(pattern, ".....123"), 5);
 
-    assertEquals(FAIL, match(pattern, "1"));
-    assertEquals(FAIL, match(pattern, "1.."));
+    assertEquals(match(pattern, "1"), FAIL);
+    assertEquals(match(pattern, "1.."), FAIL);
   }
 
   @Test
@@ -301,13 +303,13 @@ public class RecognizersTest {
     // REGEX [^\\u0000-\u009f]+
     Recognizer pattern = oneOrMore(notAscii());
 
-    assertEquals(2, match(pattern, "\u2018\u2019"));
-    assertEquals(2, match(pattern, "\u2018\u2019abc"));
-    assertEquals(5, match(pattern, 3, "___\u2018\u2019abc"));
+    assertEquals(match(pattern, "\u2018\u2019"), 2);
+    assertEquals(match(pattern, "\u2018\u2019abc"), 2);
+    assertEquals(match(pattern, 3, "___\u2018\u2019abc"), 5);
 
-    assertEquals(FAIL, match(pattern, "abc"));
-    assertEquals(FAIL, match(pattern, "\u0000"));
-    assertEquals(FAIL, match(pattern, "\u009f"));
+    assertEquals(match(pattern, "abc"), FAIL);
+    assertEquals(match(pattern, "\u0000"), FAIL);
+    assertEquals(match(pattern, "\u009f"), FAIL);
   }
 
   @Test
@@ -316,15 +318,28 @@ public class RecognizersTest {
     // REGEX  xy[.:]z
     Recognizer pattern = sequence(literal("xy"), characters('.', ':'), literal("z"));
 
-    assertEquals(4, match(pattern, "xy.z"));
-    assertEquals(4, match(pattern, "xy:z"));
+    assertEquals(match(pattern, "xy.z"), 4);
+    assertEquals(match(pattern, "xy:z"), 4);
 
-    assertEquals(4, match(pattern, "xy.zz"));
+    assertEquals(match(pattern, "xy.zz"), 4);
 
-    assertEquals(FAIL, match(pattern, "xy"));
-    assertEquals(FAIL, match(pattern, "xy.:z"));
-    assertEquals(FAIL, match(pattern, "xyz"));
-    assertEquals(FAIL, match(pattern, "xy."));
+    assertEquals(match(pattern, "xy"), FAIL);
+    assertEquals(match(pattern, "xy.:z"), FAIL);
+    assertEquals(match(pattern, "xyz"), FAIL);
+    assertEquals(match(pattern, "xy."), FAIL);
+  }
+
+  @Test
+  public void testWhitespace() {
+    // REGEX  \\s*
+    Recognizer pattern = zeroOrMore(whitespace());
+
+    assertEquals(match(pattern, "\n \tabc"), 3);
+
+    // REGEX  [^\\s]*
+    pattern = zeroOrMore(notWhitespace());
+
+    assertEquals(match(pattern, "a,.\n\t\r "), 3);
   }
 
   @Test
@@ -333,9 +348,9 @@ public class RecognizersTest {
     // REGEX  \\w+
     Recognizer pattern = oneOrMore(word());
 
-    assertEquals(3, match(pattern, "foo"));
-    assertEquals(6, match(pattern, "foobar"));
-    assertEquals(9, match(pattern, 3, "___foobar"));
+    assertEquals(match(pattern, "foo"), 3);
+    assertEquals(match(pattern, "foobar"), 6);
+    assertEquals(match(pattern, 3, "___foobar"), 9);
   }
 
   @Test
@@ -344,12 +359,12 @@ public class RecognizersTest {
     // REGEX   [\\w-]+
     Recognizer pattern = oneOrMore(worddash());
 
-    assertEquals(7, match(pattern, "foo-bar"));
-    assertEquals(8, match(pattern, "-foo-bar"));
-    assertEquals(11, match(pattern, 3, "___-foo-bar"));
-    assertEquals(11, match(pattern, 3, "___foo__bar"));
+    assertEquals(match(pattern, "foo-bar"), 7);
+    assertEquals(match(pattern, "-foo-bar"), 8);
+    assertEquals(match(pattern, 3, "___-foo-bar"), 11);
+    assertEquals(match(pattern, 3, "___foo__bar"), 11);
 
-    assertEquals(FAIL, match(pattern, ".foo-bar"));
+    assertEquals(match(pattern, ".foo-bar"), FAIL);
   }
 
   @Test
@@ -358,10 +373,10 @@ public class RecognizersTest {
     // REGEX [.:]*
     Recognizer pattern = zeroOrOne(characters('.', ':'));
 
-    assertEquals(0, match(pattern, "abc"));
-    assertEquals(1, match(pattern, "."));
-    assertEquals(1, match(pattern, ":"));
-    assertEquals(1, match(pattern, ".."));
+    assertEquals(match(pattern, "abc"), 0);
+    assertEquals(match(pattern, "."), 1);
+    assertEquals(match(pattern, ":"), 1);
+    assertEquals(match(pattern, ".."), 1);
   }
 
   @Test
@@ -370,43 +385,43 @@ public class RecognizersTest {
     // REGEX [.:]*
     Recognizer pattern = zeroOrMore(characters('.', ':'));
 
-    assertEquals(3, match(pattern, ".:."));
-    assertEquals(6, match(pattern, ".:.:.:"));
-    assertEquals(6, match(pattern, 3, "___.:."));
-    assertEquals(9, match(pattern, 3, "___.:.:.:"));
+    assertEquals(match(pattern, ".:."), 3);
+    assertEquals(match(pattern, ".:.:.:"), 6);
+    assertEquals(match(pattern, 3, "___.:."), 6);
+    assertEquals(match(pattern, 3, "___.:.:.:"), 9);
 
-    assertEquals(3, match(pattern, "...123"));
-    assertEquals(6, match(pattern, 3, "___...123"));
+    assertEquals(match(pattern, "...123"), 3);
+    assertEquals(match(pattern, 3, "___...123"), 6);
 
-    assertEquals(0, match(pattern, "123"));
-    assertEquals(0, match(pattern, "1..."));
-    assertEquals(3, match(pattern, 3, "___1..."));
+    assertEquals(match(pattern, "123"), 0);
+    assertEquals(match(pattern, "1..."), 0);
+    assertEquals(match(pattern, 3, "___1..."), 3);
 
     // REGEX \.*:
     pattern = sequence(zeroOrMore(characters('.')), characters(':'));
 
-    assertEquals(1, match(pattern, ":"));
-    assertEquals(2, match(pattern, ".:"));
-    assertEquals(4, match(pattern, "...:"));
-    assertEquals(6, match(pattern, ".....:"));
-    assertEquals(4, match(pattern, 3, "___:"));
-    assertEquals(9, match(pattern, 3, "___.....:"));
+    assertEquals(match(pattern, ":"), 1);
+    assertEquals(match(pattern, ".:"), 2);
+    assertEquals(match(pattern, "...:"), 4);
+    assertEquals(match(pattern, ".....:"), 6);
+    assertEquals(match(pattern, 3, "___:"), 4);
+    assertEquals(match(pattern, 3, "___.....:"), 9);
 
-    assertEquals(2, match(pattern, ".:::"));
-    assertEquals(6, match(pattern, ".....:::"));
-    assertEquals(9, match(pattern, 3, "___.....:::"));
+    assertEquals(match(pattern, ".:::"), 2);
+    assertEquals(match(pattern, ".....:::"), 6);
+    assertEquals(match(pattern, 3, "___.....:::"), 9);
 
-    assertEquals(FAIL, match(pattern, "."));
-    assertEquals(FAIL, match(pattern, "..."));
-    assertEquals(FAIL, match(pattern, 3, "___..."));
+    assertEquals(match(pattern, "."), FAIL);
+    assertEquals(match(pattern, "..."), FAIL);
+    assertEquals(match(pattern, 3, "___..."), FAIL);
 
     // REGEX \.{,3}
     pattern = zeroOrMore(characters('*'), 3);
 
-    assertEquals(0, match(pattern, ":::"));
-    assertEquals(3, match(pattern, 3, "___:::"));
-    assertEquals(3, match(pattern, "****"));
-    assertEquals(6, match(pattern, 3, "___****"));
+    assertEquals(match(pattern, ":::"), 0);
+    assertEquals(match(pattern, 3, "___:::"), 3);
+    assertEquals(match(pattern, "****"), 3);
+    assertEquals(match(pattern, 3, "___****"), 6);
   }
 
   private int match(Recognizers.Recognizer pattern, String str) {
