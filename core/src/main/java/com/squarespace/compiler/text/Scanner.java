@@ -24,9 +24,9 @@ import com.squarespace.compiler.match.Recognizers.Recognizer;
  */
 public class Scanner {
 
-  private final String raw;
+  private final CharSequence raw;
 
-  public Scanner(String raw) {
+  public Scanner(CharSequence raw) {
     this.raw = raw;
   }
 
@@ -55,9 +55,23 @@ public class Scanner {
     }
 
     /**
+     * Create a copy of this stream.
+     */
+    public Stream copy() {
+      return new Stream(pos, end);
+    }
+
+    /**
+     * Return the characters this stream spans.
+     */
+    public CharSequence token() {
+      return raw.subSequence(pos, end);
+    }
+
+    /**
      * Return reference to the raw underlying string.
      */
-    public String raw() {
+    public CharSequence raw() {
       return raw;
     }
 
@@ -89,6 +103,20 @@ public class Scanner {
      */
     public char peek() {
       return pos < end ? raw.charAt(pos) : Chars.EOF;
+    }
+
+    /**
+     * Seek to the expected character, returning its offset or -1.
+     */
+    public int find(char expected) {
+      int s = pos;
+      while (s < end) {
+        if (raw.charAt(s) == expected) {
+          return s;
+        }
+        s++;
+      }
+      return -1;
     }
 
     /**
@@ -124,6 +152,18 @@ public class Scanner {
         }
         pos++;
       }
+    }
+
+    /**
+     * Skip over characters matched by the given pattern.
+     */
+    public boolean skip(Recognizer pattern) {
+      int e = pattern.match(raw, pos, end);
+      if (e == -1) {
+        return false;
+      }
+      pos = e;
+      return true;
     }
 
     /**
@@ -170,7 +210,7 @@ public class Scanner {
 
     @Override
     public String toString() {
-      return raw.substring(pos, end);
+      return raw.subSequence(pos, end).toString();
     }
 
     /**
